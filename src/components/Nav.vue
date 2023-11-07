@@ -12,14 +12,16 @@
 					/>
 				</div>
 
-				<div class="right-content" v-if="!isAuth">
-					<AuthModal :isLogin="false" />
-					<AuthModal :isLogin="true" />
-				</div>
+				<div class="content" v-if="!loadingUser">
+					<div class="right-content" v-if="!user">
+						<AuthModal :isLogin="false" />
+						<AuthModal :isLogin="true" />
+					</div>
 
-				<div class="right-content" v-else>
-					<AButton type="primary">Profile</AButton>
-					<AButton type="primary">Logout</AButton>
+					<div class="right-content" v-else>
+						<AButton type="primary">Profile</AButton>
+						<AButton type="primary" @click="handleLogout">Logout</AButton>
+					</div>
 				</div>
 			</div>
 		</Container>
@@ -29,21 +31,26 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router';
 import { ref } from 'vue';
+import { storeToRefs } from 'pinia';
 
 import AuthModal from './AuthModal.vue';
 import Container from './Container.vue';
+import { useUsersStore } from '../stores/users';
 
+const userStore = useUsersStore();
+const { user, loadingUser } = storeToRefs(userStore);
 const router = useRouter();
-
 const searchUsername = ref('');
-const isAuth = ref(false);
-
 
 const onSearch = () => {
 	if (searchUsername.value) {
 		router.push(`/profile/${searchUsername.value}`);
 		searchUsername.value = '';
 	}
+};
+
+const handleLogout = async () => {
+	await userStore.handleLogout();
 };
 </script>
 
@@ -54,6 +61,10 @@ const onSearch = () => {
 .nav-container {
 	display: flex;
 	justify-content: space-between;
+}
+.content {
+	display: flex;
+	align-items: center;
 }
 .left-content {
 	display: flex;
