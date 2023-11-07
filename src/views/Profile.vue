@@ -1,24 +1,16 @@
 <template>
 	<Container>
-		<div class="container-container">
+		<div class="container-container" v-if="!loading">
 			<UserBar
-				username="SerEro"
+				:key="$route.params.username"
+				:user="user"
 				:userInfo="{ posts: 4, followers: 55, following: 33 }"
+				:addNewPost="addNewPost"
 			/>
-			<ImageGallary
-				:posts="[
-					{
-						id: 1,
-						image:
-							'https://www.asmonaco.com/wp-content/uploads/2022/09/media-1987859-1676276-1160x650.jpg',
-					},
-					{
-						id: 2,
-						image:
-							'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIGXsE9xjfPI_XaL8yHnW5iky5oxeFsFM7wA&usqp=CAU',
-					},
-				]"
-			/>
+			<ImageGallary :posts="posts" />
+		</div>
+		<div v-else class="spinner">
+			<ASpin />
 		</div>
 	</Container>
 </template>
@@ -27,6 +19,49 @@
 import Container from '../components/Container.vue';
 import ImageGallary from '../components/ImageGallary.vue';
 import UserBar from '../components/UserBar.vue';
+import { supabase } from '../supabase';
+
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const { username } = route.params;
+
+const posts = ref([]);
+const user = ref(null);
+const loading = ref(false);
+
+const addNewPost = (post) => {
+	posts.value.unshift(post);
+};
+
+const fetchData = async () => {
+	loading.value = true;
+	const { data: userData } = await supabase
+		.from('users')
+		.select()
+		.eq('username', username)
+		.single();
+
+	if (!userData) {
+		loading.value = false;
+		return user.value = null;
+	}
+
+	user.value = userData;
+
+	const { data: postsData } = await supabase
+		.from('posts')
+		.select()
+		.eq('owned_id', user.value.id);
+
+	posts.value = postsData;
+	loading.value = false;
+};
+
+onMounted(() => {
+	fetchData();
+});
 </script>
 
 <style scoped>
@@ -35,5 +70,12 @@ import UserBar from '../components/UserBar.vue';
 	flex-direction: column;
 
 	padding: 20px 0;
+}
+
+.spinner {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 85vh;
 }
 </style>
