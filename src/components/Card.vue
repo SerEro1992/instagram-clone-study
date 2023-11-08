@@ -1,10 +1,7 @@
 <template>
 	<ACard hoverable style="width: 50%" class="card">
 		<template #cover>
-			<img
-				alt="example"
-				:src="post.url"
-			/>
+			<img alt="example" :src="`${VITE_BASE_PHOTO_URL}${post.url}`" />
 		</template>
 		<ACard-meta :title="post.username">
 			<template #description>{{ post.caption }}</template>
@@ -16,6 +13,7 @@
 import { defineProps } from 'vue';
 
 const { username, url, caption } = defineProps(['post']);
+const { VITE_BASE_PHOTO_URL } = import.meta.env;
 </script>
 
 <style scoped>
